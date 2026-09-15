@@ -1,0 +1,22 @@
+# Entornos virtuales
+.venv/
+
+# Caché de Python
+__pycache__/
+*.py[cod]
+
+# Configuración local (nunca commitear secretos)
+.env
+
+# Cachés de herramientas
+.pytest_cache/
+.ruff_cache/
+
+# Artefactos de build
+dist/
+build/
+*.egg-info/
+
+# IDEs
+.idea/
+.vscode/
