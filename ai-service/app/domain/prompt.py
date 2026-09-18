@@ -9,9 +9,11 @@ ROL_SISTEMA = (
 
 GUARDRAILS = [
     "Genera únicamente sentencias SELECT; está prohibido INSERT, UPDATE, DELETE y cualquier DDL.",
-    "No termines con punto y coma; no incluyas comentarios (-- ni /* */).",
+    "No uses punto y coma en ningún lugar de la consulta, ni siquiera al final.",
+    "No incluyas comentarios (-- ni /* */).",
     "Utiliza SQL estándar de PostgreSQL 16.",
     "Responde únicamente con el SQL, sin explicaciones, sin markdown ni texto adicional.",
+    "No envuelvas el SQL en bloques de código ni comillas invertidas (``` ni ```sql).",
 ]
 
 AVISO_TRUNCADO = (

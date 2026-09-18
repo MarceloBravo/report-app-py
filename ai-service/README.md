@@ -35,9 +35,11 @@ cp .env.example .env   # y completar OPENAI_API_KEY / ANTHROPIC_API_KEY
 | Variable | Default | Descripción |
 |---|---|---|
 | `SERVICE_PORT` | `8000` | Puerto del servicio |
-| `LLM_PROVIDER` | `openai` | Proveedor: `openai` \| `anthropic` |
+| `LLM_PROVIDER` | `openai` | Proveedor: `openai` \| `anthropic` \| `ollama` |
 | `LLM_MODEL` | `gpt-4o-mini-2024-07-18` | Modelo por defecto |
+| `LLM_BASE_URL` | — | URL base opcional (compatibles con OpenAI) |
 | `OPENAI_API_KEY` | — | Credencial OpenAI |
+| `OLLAMA_BASE_URL` | `http://localhost:11434/v1` | Endpoint OpenAI-compatible de Ollama |
 | `ANTHROPIC_API_KEY` / `ANTHROPIC_MODEL` | — | Credencial y modelo Anthropic |
 | `LLM_TIMEOUT_SECONDS` | `30` | Timeout de la llamada al LLM |
 | `LLM_MAX_TOKENS` | `2048` | Máximo de tokens de la respuesta |
@@ -45,7 +47,13 @@ cp .env.example .env   # y completar OPENAI_API_KEY / ANTHROPIC_API_KEY
 | `MAX_PROMPT_CHARS` | `8000` | Límite de caracteres del prompt final |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:8080` | Orígenes CORS permitidos |
 
-Para usar Anthropic: `uv sync --extra anthropic`.
+### Proveedores
+
+- **OpenAI** (default): rellena `OPENAI_API_KEY`.
+- **Anthropic**: `uv sync --extra anthropic` y define `LLM_PROVIDER=anthropic` + `ANTHROPIC_API_KEY`.
+- **Ollama** (local, coste cero): instala Ollama, descarga un modelo (`ollama pull qwen2.5-coder:7b`)
+  y define `LLM_PROVIDER=ollama` + `LLM_MODEL=qwen2.5-coder:7b`. No requiere API key. Si el servicio
+  corre en Docker y Ollama en el host, usa `LLM_BASE_URL=http://host.docker.internal:11434/v1`.
 
 ## Desarrollo
 

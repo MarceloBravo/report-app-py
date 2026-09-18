@@ -5,10 +5,17 @@ from app.infrastructure.llm.base import LlmClient
 
 
 class OpenAILLMClient(LlmClient):
-    def __init__(self, api_key: str, model: str, timeout: float, max_tokens: int):
+    def __init__(
+        self,
+        api_key: str,
+        model: str,
+        timeout: float,
+        max_tokens: int,
+        base_url: str | None = None,
+    ):
         self._model = model
         self._max_tokens = max_tokens
-        self._client = AsyncOpenAI(api_key=api_key, timeout=timeout)
+        self._client = AsyncOpenAI(api_key=api_key, timeout=timeout, base_url=base_url)
 
     async def generar_sql(self, system_prompt: str, pregunta: str) -> str:
         try:

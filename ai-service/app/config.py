@@ -10,6 +10,8 @@ class Settings(BaseSettings):
 
     llm_provider: str = "openai"
     llm_model: str = "gpt-4o-mini-2024-07-18"
+    llm_base_url: str = ""
+    ollama_base_url: str = "http://localhost:11434/v1"
 
     openai_api_key: str = ""
     anthropic_api_key: str = ""
