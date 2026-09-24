@@ -19,6 +19,7 @@ class Settings(BaseSettings):
 
     llm_timeout_seconds: float = 30.0
     llm_max_tokens: int = 2048
+    llm_revisar_fk: bool = True
 
     max_schema_tables: int = 50
     max_schema_columns: int = 200

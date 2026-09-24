@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "AI Service: uvicorn (debug)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": ["app.main:app", "--host", "0.0.0.0", "--port", "8000"],
+            "cwd": "${workspaceFolder}/ai-service",
+            "env": { "PYTHONPATH": "${workspaceFolder}/ai-service" },
+            "console": "internalConsole",
+            "justMyCode": true
+        },
+        {
+            "name": "AI Service: attach (5678)",
+            "type": "debugpy",
+            "request": "attach",
+            "connect": { "host": "localhost", "port": 5678 },
+            "pathMappings": [
+                { "localRoot": "${workspaceFolder}/ai-service", "remoteRoot": "${workspaceFolder}/ai-service" }
+            ]
+        }
+    ]
+}

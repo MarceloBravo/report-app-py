@@ -80,3 +80,74 @@ def test_openapi_disponible(crear_client):
     cliente = crear_client()
     assert cliente.get("/docs").status_code == 200
     assert cliente.get("/openapi.json").status_code == 200
+
+
+def test_sql_200_con_proveedor_fake_dos_pasadas_por_relaciones(crear_client):
+    cuerpo = {
+        "tenantId": "t-cat",
+        "usuarioId": "u-1",
+        "preguntaUsuario": "Notebooks cuya marca sea Lenovo",
+        "esquema": {
+            "tablas": [
+                {
+                    "nombre": "products",
+                    "columnas": [
+                        {"nombre": "id", "tipoDato": "uuid", "esPrimaryKey": True},
+                        {"nombre": "name", "tipoDato": "varchar", "nullable": False},
+                        {
+                            "nombre": "mark_id",
+                            "tipoDato": "uuid",
+                            "esForeignKey": True,
+                            "tablaReferenciada": "marks",
+                            "columnaReferenciada": "id",
+                        },
+                    ],
+                },
+                {"nombre": "marks", "columnas": [{"nombre": "id", "tipoDato": "uuid"}]},
+            ]
+        },
+    }
+    borrador = "SELECT p.* FROM products p WHERE p.name LIKE 'Lenovo%'"
+    corregido = (
+        "SELECT p.* FROM products p JOIN marks m ON p.mark_id = m.id "
+        "WHERE m.name LIKE 'Lenovo%'"
+    )
+    llm = FakeLlmClient(respuestas=[borrador, corregido])
+    cliente = crear_client(llm)
+    respuesta = cliente.post("/sql", json=cuerpo)
+    assert respuesta.status_code == 200
+    assert "JOIN marks m" in respuesta.json()["querySql"]
+    assert len(llm.llamadas) == 2
+
+
+def test_sql_con_revision_invalida_conserva_original(crear_client):
+    cuerpo = {
+        "tenantId": "t-cat",
+        "usuarioId": "u-1",
+        "preguntaUsuario": "Notebooks cuya marca sea Lenovo",
+        "esquema": {
+            "tablas": [
+                {
+                    "nombre": "products",
+                    "columnas": [
+                        {"nombre": "id", "tipoDato": "uuid", "esPrimaryKey": True},
+                        {
+                            "nombre": "mark_id",
+                            "tipoDato": "uuid",
+                            "esForeignKey": True,
+                            "tablaReferenciada": "marks",
+                            "columnaReferenciada": "id",
+                        },
+                    ],
+                },
+                {"nombre": "marks", "columnas": [{"nombre": "id", "tipoDato": "uuid"}]},
+            ]
+        },
+    }
+    borrador = "SELECT p.* FROM products p"
+    llm = FakeLlmClient(respuestas=[borrador, ""])
+    cliente = crear_client(llm)
+    respuesta = cliente.post("/sql", json=cuerpo)
+    assert respuesta.status_code == 200
+    assert respuesta.json()["querySql"] == borrador
+    assert len(llm.llamadas) == 2

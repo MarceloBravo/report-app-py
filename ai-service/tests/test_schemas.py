@@ -7,14 +7,22 @@ ESQUEMA_BASICO = {
         {
             "nombre": "ventas",
             "columnas": [
-                {"nombre": "id", "tipoDato": "uuid", "nullable": False, "esPrimaryKey": True},
                 {
+                    "tabla": "ventas",
+                    "nombre": "id",
+                    "tipoDato": "uuid",
+                    "nullable": False,
+                    "esPrimaryKey": True,
+                },
+                {
+                    "tabla": "ventas",
                     "nombre": "monto",
                     "tipoDato": "numeric",
                     "nullable": False,
                     "esPrimaryKey": False,
                 },
                 {
+                    "tabla": "ventas",
                     "nombre": "fecha",
                     "tipoDato": "timestamp",
                     "nullable": False,
@@ -38,6 +46,83 @@ def test_request_sql_valido():
     assert request.tenantId == "t-1"
     assert request.esquema.tablas[0].nombre == "ventas"
     assert request.esquema.tablas[0].columnas[0].esPrimaryKey is True
+    assert request.esquema.tablas[0].columnas[0].tabla == "ventas"
+
+
+def test_request_reconoce_relaciones_entre_tablas():
+    cuerpo = dict(CUERPO_VALIDO)
+    cuerpo["esquema"] = {
+        "tablas": [
+            {
+                "nombre": "ventas",
+                "columnas": [
+                    {
+                        "tabla": "ventas",
+                        "nombre": "cliente_id",
+                        "tipoDato": "uuid",
+                        "nullable": False,
+                        "esPrimaryKey": False,
+                        "esForeignKey": True,
+                        "tablaReferenciada": "clientes",
+                        "columnaReferenciada": "id",
+                    }
+                ],
+            },
+            {"nombre": "clientes", "columnas": [{"nombre": "id", "tipoDato": "uuid"}]},
+        ]
+    }
+    request = RequestSql.model_validate(cuerpo)
+    columna = request.esquema.tablas[0].columnas[0]
+    assert columna.tabla == "ventas"
+    assert columna.esForeignKey is True
+    assert columna.tablaReferenciada == "clientes"
+    assert columna.columnaReferenciada == "id"
+
+
+def test_request_relaciones_omiten_campos_usando_defaults():
+    cuerpo = dict(CUERPO_VALIDO)
+    columna = RequestSql.model_validate(cuerpo).esquema.tablas[0].columnas[0]
+    assert columna.esForeignKey is False
+    assert columna.tablaReferenciada is None
+    assert columna.columnaReferenciada is None
+
+
+def test_request_acepta_nulos_en_campos_de_relacion():
+    cuerpo = dict(CUERPO_VALIDO)
+    cuerpo["esquema"] = {
+        "tablas": [
+            {
+                "nombre": "ventas",
+                "columnas": [
+                    {
+                        "tabla": "ventas",
+                        "nombre": "cliente_id",
+                        "tipoDato": "uuid",
+                        "nullable": False,
+                        "esPrimaryKey": False,
+                        "esForeignKey": True,
+                        "tablaReferenciada": "clientes",
+                        "columnaReferenciada": "id",
+                    },
+                    {
+                        "tabla": None,
+                        "nombre": "monto",
+                        "tipoDato": "numeric",
+                        "nullable": True,
+                        "esPrimaryKey": False,
+                        "esForeignKey": False,
+                        "tablaReferenciada": None,
+                        "columnaReferenciada": None,
+                    },
+                ],
+            }
+        ]
+    }
+    request = RequestSql.model_validate(cuerpo)
+    monto = request.esquema.tablas[0].columnas[1]
+    assert monto.tabla is None
+    assert monto.esForeignKey is False
+    assert monto.tablaReferenciada is None
 
 
 @pytest.mark.parametrize(

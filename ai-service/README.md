@@ -43,6 +43,7 @@ cp .env.example .env   # y completar OPENAI_API_KEY / ANTHROPIC_API_KEY
 | `ANTHROPIC_API_KEY` / `ANTHROPIC_MODEL` | — | Credencial y modelo Anthropic |
 | `LLM_TIMEOUT_SECONDS` | `30` | Timeout de la llamada al LLM |
 | `LLM_MAX_TOKENS` | `2048` | Máximo de tokens de la respuesta |
+| `LLM_REVISAR_FK` | `true` | 2.ª pasada de revisión/corrección de JOINs por claves foráneas (llamada extra al LLM) |
 | `MAX_SCHEMA_TABLES` / `MAX_SCHEMA_COLUMNS` | `50` / `200` | Límites del esquema (se trunca) |
 | `MAX_PROMPT_CHARS` | `8000` | Límite de caracteres del prompt final |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:8080` | Orígenes CORS permitidos |
