@@ -22,7 +22,7 @@ class SqlUseCase:
             max_prompt_chars=self._settings.max_prompt_chars,
         )
         sql = await self._llm.generar_sql(prompt.system, prompt.pregunta)
-        sql_valido = validar_sql_generado(sql)
+        sql_valido = validar_sql_generado(sql, consulta.esquema)
         return ResponseSql(
             tenantId=consulta.tenantId,
             querySql=sql_valido,

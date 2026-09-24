@@ -11,9 +11,19 @@ GUARDRAILS = [
     "Genera únicamente sentencias SELECT; está prohibido INSERT, UPDATE, DELETE y cualquier DDL.",
     "No uses punto y coma en ningún lugar de la consulta, ni siquiera al final.",
     "No incluyas comentarios (-- ni /* */).",
+    "Sin saltos de línea ni el texto literal '\\n': toda la consulta en una sola línea.",
     "Utiliza SQL estándar de PostgreSQL 16.",
     "Responde únicamente con el SQL, sin explicaciones, sin markdown ni texto adicional.",
     "No envuelvas el SQL en bloques de código ni comillas invertidas (``` ni ```sql).",
+    "Une las tablas por sus claves foráneas y sus columnas correspondientes.",
+    "Usa alias de tabla en todas ellas, aunque los nombres de columna no sean ambiguos.",
+    "Usa EXCLUSIVAMENTE tablas y columnas listadas en el esquema: no inventes ni cambies ninguna.",
+    "No derives nombres de tablas ni columnas a partir del texto de la pregunta del usuario.",
+    "Toda tabla de FROM/JOIN debe figurar en el esquema: si no está, no existe.",
+    "Ejemplo: con 'Notebooks' en la pregunta y el esquema con 'productos', usa 'productos'.",
+    "Relaciona las entidades de la pregunta con las tablas del esquema por su significado.",
+    "Si el esquema no permite responder, usa solo el texto exacto indicado abajo.",
+    "No uses ninguna tabla o columna que no figure en el esquema.",
 ]
 
 AVISO_TRUNCADO = (
@@ -22,6 +32,8 @@ AVISO_TRUNCADO = (
 )
 
 AVISO_PROMPT_TRUNCADO = "[prompt truncado por límite de tamaño del servicio]"
+
+RESPUESTA_NO_SQL = "No se puede generar una consulta SQL con el esquema proporcionado."
 
 
 @dataclass(frozen=True)
@@ -62,7 +74,14 @@ def _limitar_prompt_total(sistema: str, pregunta: str, max_chars: int) -> str:
     disponible = max_chars - len(pregunta)
     if disponible <= 0 or len(sistema) <= disponible:
         return sistema if disponible > 0 else ""
-    return sistema[: disponible - len(AVISO_PROMPT_TRUNCADO)] + AVISO_PROMPT_TRUNCADO
+    presupuesto = disponible - len(AVISO_PROMPT_TRUNCADO) - 1
+    if presupuesto <= 0:
+        return AVISO_PROMPT_TRUNCADO
+    recortado = sistema[:presupuesto]
+    salto = recortado.rfind("\n")
+    if salto != -1:
+        recortado = recortado[:salto]
+    return recortado.rstrip() + "\n" + AVISO_PROMPT_TRUNCADO
 
 
 def construir_prompt_maestro(
@@ -80,6 +99,9 @@ def construir_prompt_maestro(
         "",
         "Reglas obligatorias:",
         *GUARDRAILS,
+        "",
+        "Si no puedes responder, responde únicamente con este texto exacto:",
+        RESPUESTA_NO_SQL,
         "",
         "Esquema de la base de datos:",
         frag_esquema,

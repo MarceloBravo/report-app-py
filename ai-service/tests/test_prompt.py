@@ -1,5 +1,5 @@
 from app.domain.esquema import EsquemaTenant
-from app.domain.prompt import construir_prompt_maestro
+from app.domain.prompt import AVISO_PROMPT_TRUNCADO, construir_prompt_maestro
 
 
 def _esquema() -> EsquemaTenant:
@@ -59,6 +59,23 @@ def test_esquema_con_mas_columnas_se_trunca():
 def test_prompt_respeta_maximo_de_caracteres():
     prompt = construir_prompt_maestro(_esquema(), "consulta", max_prompt_chars=200)
     assert len(prompt.system) <= 200
+    assert prompt.system.endswith(AVISO_PROMPT_TRUNCADO)
+
+
+def test_prompt_truncado_corta_en_limite_de_linea():
+    prompt = construir_prompt_maestro(_esquema(), "consulta", max_prompt_chars=200)
+    cuerpo = prompt.system.removesuffix(AVISO_PROMPT_TRUNCADO)
+    assert cuerpo.endswith("\n")
+
+
+def test_prompt_incluye_guardrail_solo_tablas_del_esquema():
+    prompt = construir_prompt_maestro(_esquema(), "consulta")
+    assert "EXCLUSIVAMENTE tablas y columnas" in prompt.system
+    assert "No derives nombres de tablas" in prompt.system
+    assert "debe figurar en el esquema" in prompt.system
+    assert "'Notebooks'" in prompt.system
+    assert "exacto" in prompt.system
+    assert "No se puede generar una consulta SQL" in prompt.system
 
 
 def test_prompt_sin_truncado_cuando_está_dentro_de_limites():
